@@ -21,8 +21,12 @@ class VendaProcessor:
                         self.coluna_b = "1"
                     elif str(estabelecimento) == "2889751230":
                         self.coluna_b = "6"
-                    # 5124 - FAAMA
+                    # 5124 - FAAMA 1109206094
                     elif str(estabelecimento) == "1030032510":
+                        self.coluna_b = "5"
+                    elif str(estabelecimento) == "1109206094":
+                        self.coluna_b = "6"
+                    elif str(estabelecimento) == "2809433369":
                         self.coluna_b = "1"
                     else:
                         self.error = "Código de estabelecimento não reconhecido."
