@@ -1,0 +1,252 @@
+/*
+    static/css/style.css
+    Tema de design para o Centralizador de Scripts
+    Paleta de cores: #002060, #FFFFFF, #3b74d7
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* Estilos globais */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #F8F9FA;
+    color: #333;
+    margin: 0;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header (cabeçalho) */
+header {
+    background-color: #002060;
+    color: #FFFFFF;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+.page-title {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+/* Botão do menu lateral */
+.sidebar-toggle {
+    font-size: 2rem;
+    cursor: pointer;
+    margin-right: 20px;
+    color: #FFFFFF;
+    transition: color 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+    color: #3b74d7;
+}
+
+/* Container principal do conteúdo */
+.content-wrapper {
+    display: flex;
+    flex-grow: 1;
+    margin-top: 67px; /* Adicionado para deixar espaço para o cabeçalho */
+}
+
+/* Menu Lateral (Sidebar) */
+.sidebar {
+    width: 250px;
+    background-color: #333;
+    color: #FFFFFF;
+    position: sticky; /* O menu fica fixo ao rolar */
+    top: 67px; /* A altura do cabeçalho */
+    height: calc(100vh - 67px); /* Ocupa o restante da altura da tela */
+    z-index: 10;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
+}
+
+.sidebar.closed {
+    transform: translateX(-250px);
+}
+
+.sidebar nav {
+    padding-top: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar li a {
+    display: block;
+    color: #FFFFFF;
+    padding: 15px 20px;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.sidebar li a:hover {
+    background-color: rgba(59, 116, 215, 0.2);
+    color: #3b74d7;
+}
+
+/* Conteúdo principal */
+.main-content {
+    flex-grow: 1;
+    padding: 2rem;
+    max-width: 900px;
+    margin: 2rem auto; /* Centraliza horizontalmente */
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.main-content.shifted {
+    margin: 2rem auto;
+}
+
+/* Seções da página */
+.welcome-section,
+.script-section {
+    text-align: center;
+}
+
+.welcome-section h1 {
+    color: #002060;
+    font-weight: 600;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-section p {
+    color: #555;
+    font-size: 1.1rem;
+}
+
+.script-section h2 {
+    color: #002060;
+    font-weight: 600;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Estilos de formulário */
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+label {
+    font-weight: 400;
+    font-size: 1rem;
+    color: #444;
+    width: 100%;
+    text-align: left;
+}
+
+input[type="text"],
+input[type="file"] {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.8rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="file"]:focus {
+    outline: none;
+    border-color: #3b74d7;
+    box-shadow: 0 0 0 3px rgba(59, 116, 215, 0.2);
+}
+
+input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+button {
+    background-color: #002060;
+    color: #FFFFFF;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+    background-color: #3b74d7;
+    transform: translateY(-2px);
+}
+
+/* Caixas de resultado e mensagens de erro */
+.result-box, .flashes {
+    width: 100%;
+    max-width: 500px;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.result-box {
+    background-color: #e9f5ff;
+    border: 1px solid #cceeff;
+    color: #004085;
+}
+
+.result-box h3 {
+    margin-top: 0;
+    font-weight: 600;
+    color: #002060;
+}
+
+.flashes {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto 2rem auto; /* Centraliza o contêiner de mensagens */
+    width: 100%;
+    max-width: 600px; /* Limita a largura */
+}
+
+.flashes li {
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.flashes li.error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.flashes li.info {
+    background-color: #cce5ff;
+    border: 1px solid #b8daff;
+    color: #004085;
+}
+
+.flashes li.success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}

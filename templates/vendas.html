@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="script-section">
+    <h2>Processar Vendas</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul class="flashes">
+        {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+
+    <div>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="data_inicial">Data Inicial (dd/mm/aaaa):</label>
+                <input type="text" id="data_inicial" name="data_inicial" required>
+            </div>
+            <div class="form-group">
+                <label for="data_final">Data Final (dd/mm/aaaa):</label>
+                <input type="text" id="data_final" name="data_final" required>
+            </div>
+            <div class="form-group">
+                <label for="cielo">Arquivo Cielo.xlsx:</label>
+                <input type="file" id="cielo" name="cielo" required>
+            </div>
+            <div class="form-group">
+                <label for="vendas">Arquivo Vendas.xlsx:</label>
+                <input type="file" id="vendas" name="vendas" required>
+            </div>
+            <div class="form-group">
+                <input type="checkbox" id="consolidado" name="consolidado">
+                <label for="consolidado">Gerar apenas um arquivo consolidado</label>
+            </div>
+            <button type="submit">Processar</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

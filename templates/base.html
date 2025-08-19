@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centralizador de Scripts</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div id="sidebar-toggle" class="sidebar-toggle">
+            &#9776; </div>
+        <h1 class="page-title">Centralizador de Scripts</h1>
+    </header>
+
+    <div class="content-wrapper">
+        <aside id="sidebar" class="sidebar closed">
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('home') }}">Início</a></li>
+                    <li><a href="{{ url_for('processar_vendas') }}">Gerar Lotes</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main id="main-content" class="main-content shifted">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleButton = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            
+            // Verifica o estado salvo no sessionStorage ao carregar a página
+            const savedState = sessionStorage.getItem('sidebarState');
+            if (savedState === 'open') {
+                sidebar.classList.remove('closed');
+                mainContent.classList.remove('shifted');
+            } else {
+                sidebar.classList.add('closed');
+                mainContent.classList.add('shifted');
+            }
+
+            toggleButton.addEventListener('click', function() {
+                // Alterna as classes de CSS
+                sidebar.classList.toggle('closed');
+                mainContent.classList.toggle('shifted');
+
+                // Salva o novo estado no sessionStorage
+                if (sidebar.classList.contains('closed')) {
+                    sessionStorage.setItem('sidebarState', 'closed');
+                } else {
+                    sessionStorage.setItem('sidebarState', 'open');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
