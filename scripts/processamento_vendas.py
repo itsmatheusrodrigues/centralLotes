@@ -10,23 +10,25 @@ class VendaProcessor:
         self.paths_vendas = paths_vendas
         self.coluna_b = None
         self.error = None
+        self.estabelecimento_code = None
 
         try:
             if self.paths_cielo:
                 df_cielo_temp = pd.read_excel(self.paths_cielo[0], skiprows=9, usecols="I", engine="openpyxl")
                 if not df_cielo_temp.empty:
                     estabelecimento = df_cielo_temp.iloc[0, 0]
-                    # 5112 - Loja SELS
-                    if str(estabelecimento) == "1049143393":
+                    self.estabelecimento_code = str(estabelecimento).strip()
+                    # Estabelecimentos da Loja - 5112
+                    if self.estabelecimento_code in ["1049143393"]:
                         self.coluna_b = "1"
-                    elif str(estabelecimento) == "2889751230":
+                    elif self.estabelecimento_code == "2889751230":
                         self.coluna_b = "6"
-                    # 5124 - FAAMA 1109206094
-                    elif str(estabelecimento) == "1030032510":
+                    # Estabelecimentos da FAAMA - 5124
+                    elif self.estabelecimento_code == "1030032510":
                         self.coluna_b = "5"
-                    elif str(estabelecimento) == "1109206094":
+                    elif self.estabelecimento_code == "1109206094":
                         self.coluna_b = "6"
-                    elif str(estabelecimento) == "2809433369":
+                    elif self.estabelecimento_code == "2809433369":
                         self.coluna_b = "1"
                     else:
                         self.error = "Código de estabelecimento não reconhecido."
@@ -121,11 +123,15 @@ class VendaProcessor:
             })
             df_comissao = df_comissao[df_comissao["Coluna F"] != 0]
 
+            coluna_b_vendas = "4"
+            if self.estabelecimento_code in ["1030032510", "1109206094", "2809433369"]:
+                coluna_b_vendas = "30"
+
             df_vendas_resultado = None
             if not df_vendas_data.empty:
                 df_vendas_resultado = pd.DataFrame({
                     "Coluna A": "2139090",
-                    "Coluna B": "4",
+                    "Coluna B": coluna_b_vendas,
                     "Coluna C": "10",
                     "Coluna D": "101",
                     "Coluna E": "0A",

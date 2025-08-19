@@ -85,6 +85,12 @@ def processar_vendas():
                 paths_vendas.append(path)
             
             processor = VendaProcessor(data_inicial, data_final, paths_cielo, paths_vendas)
+            
+            # Lógica para determinar a primeira linha com base no estabelecimento
+            first_line_code = "5112"
+            if processor.estabelecimento_code in ["1030032510", "1109206094", "2809433369"]:
+                first_line_code = "5124"
+
             lista_tuplas_dfs, error = processor.processar()
             
             if error:
@@ -96,7 +102,7 @@ def processar_vendas():
                     dfs = [df for data, df in lista_tuplas_dfs]
                     df_final = pd.concat(dfs, ignore_index=True)
                     
-                    df_first_line = pd.DataFrame([["5112"] + ["" for _ in range(7)]], columns=df_final.columns)
+                    df_first_line = pd.DataFrame([[first_line_code] + ["" for _ in range(7)]], columns=df_final.columns)
                     df_final = pd.concat([df_first_line, df_final], ignore_index=True)
                     
                     nome_final = f"intervalo_consolidado_{data_inicial.strftime('%Y-%m-%d')}_a_{data_final.strftime('%Y-%m-%d')}.csv"
@@ -112,7 +118,7 @@ def processar_vendas():
 
                 else:
                     for data, df_dia in lista_tuplas_dfs:
-                        df_first_line = pd.DataFrame([["5112"] + ["" for _ in range(7)]], columns=df_dia.columns)
+                        df_first_line = pd.DataFrame([[first_line_code] + ["" for _ in range(7)]], columns=df_dia.columns)
                         df_dia_completo = pd.concat([df_first_line, df_dia], ignore_index=True)
 
                         nome_arquivo = f"{data}.csv"
