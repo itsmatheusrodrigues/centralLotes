@@ -1,30 +1,35 @@
-# scripts/processamento_vendas.py
-
 import pandas as pd
 from decimal import Decimal, ROUND_HALF_UP
 import os
 
 class VendaProcessor:
-    def __init__(self, data_inicial, data_final, path_cielo, path_vendas):
+    def __init__(self, data_inicial, data_final, paths_cielo, paths_vendas):
         self.data_inicial = data_inicial
         self.data_final = data_final
-        self.path_cielo = path_cielo
-        self.path_vendas = path_vendas
+        self.paths_cielo = paths_cielo
+        self.paths_vendas = paths_vendas
         self.coluna_b = None
         self.error = None
 
         try:
-            df_cielo_temp = pd.read_excel(self.path_cielo, skiprows=9, usecols="I", engine="openpyxl")
-            if not df_cielo_temp.empty:
-                estabelecimento = df_cielo_temp.iloc[0, 0]
-                if str(estabelecimento) == "1049143393":
-                    self.coluna_b = "1"
-                elif str(estabelecimento) == "2889751230":
-                    self.coluna_b = "6"
+            if self.paths_cielo:
+                df_cielo_temp = pd.read_excel(self.paths_cielo[0], skiprows=9, usecols="I", engine="openpyxl")
+                if not df_cielo_temp.empty:
+                    estabelecimento = df_cielo_temp.iloc[0, 0]
+                    # 5112 - Loja SELS
+                    if str(estabelecimento) == "1049143393":
+                        self.coluna_b = "1"
+                    elif str(estabelecimento) == "2889751230":
+                        self.coluna_b = "6"
+                    # 5124 - FAAMA
+                    elif str(estabelecimento) == "1030032510":
+                        self.coluna_b = "1"
+                    else:
+                        self.error = "Código de estabelecimento não reconhecido."
                 else:
-                    self.error = "Código de estabelecimento não reconhecido."
+                    self.error = "O primeiro arquivo Cielo está vazio ou o formato está incorreto."
             else:
-                self.error = "Arquivo Cielo.xlsx está vazio ou o formato está incorreto."
+                self.error = "Nenhum arquivo Cielo selecionado."
         except Exception as e:
             self.error = f"Erro ao identificar o estabelecimento: {e}"
 
@@ -35,28 +40,35 @@ class VendaProcessor:
         if self.error:
             return None, self.error
 
+        df_cielo_consolidado = pd.DataFrame()
+        df_vendas_consolidado = pd.DataFrame()
+        
         try:
-            df_cielo = pd.read_excel(self.path_cielo, skiprows=9, usecols="A:I", engine="openpyxl")
-            df_cielo.columns = ["Data de pagamento", "Data do lançamento", "NSU/DOC", "Valor bruto", "Valor líquido", 
+            for path in self.paths_cielo:
+                df_temp = pd.read_excel(path, skiprows=9, usecols="A:I", engine="openpyxl")
+                df_temp.columns = ["Data de pagamento", "Data do lançamento", "NSU/DOC", "Valor bruto", "Valor líquido", 
                                 "Data prevista de pagamento", "Número da parcela", "Quantidade total de parcelas", "Estabelecimento"]
-            df_cielo["Data do lançamento"] = pd.to_datetime(df_cielo["Data do lançamento"], errors='coerce', dayfirst=True)
-            df_cielo["Data prevista de pagamento"] = pd.to_datetime(df_cielo["Data prevista de pagamento"], errors='coerce', dayfirst=True)
-
-            df_vendas = pd.read_excel(self.path_vendas, skiprows=9, usecols="A:E", engine="openpyxl")
-            df_vendas.columns = ["Data da venda", "NSU/DOC", "Valor bruto", "Número da máquina", "Estabelecimento"]
-            df_vendas["Data da venda"] = pd.to_datetime(df_vendas["Data da venda"], errors='coerce', dayfirst=True)
-
+                df_temp["Data do lançamento"] = pd.to_datetime(df_temp["Data do lançamento"], errors='coerce', dayfirst=True)
+                df_temp["Data prevista de pagamento"] = pd.to_datetime(df_temp["Data prevista de pagamento"], errors='coerce', dayfirst=True)
+                df_cielo_consolidado = pd.concat([df_cielo_consolidado, df_temp], ignore_index=True)
+            
+            for path in self.paths_vendas:
+                df_temp = pd.read_excel(path, skiprows=9, usecols="A:E", engine="openpyxl")
+                df_temp.columns = ["Data da venda", "NSU/DOC", "Valor bruto", "Número da máquina", "Estabelecimento"]
+                df_temp["Data da venda"] = pd.to_datetime(df_temp["Data da venda"], errors='coerce', dayfirst=True)
+                df_vendas_consolidado = pd.concat([df_vendas_consolidado, df_temp], ignore_index=True)
+        
         except Exception as e:
             return None, f"Erro ao ler arquivos: {e}"
-
-        df_cielo = df_cielo[
-            (df_cielo["Data do lançamento"] >= self.data_inicial) & 
-            (df_cielo["Data do lançamento"] <= self.data_final)
+        
+        df_cielo = df_cielo_consolidado[
+            (df_cielo_consolidado["Data do lançamento"] >= self.data_inicial) & 
+            (df_cielo_consolidado["Data do lançamento"] <= self.data_final)
         ]
 
-        df_vendas = df_vendas[
-            (df_vendas["Data da venda"] >= self.data_inicial) & 
-            (df_vendas["Data da venda"] <= self.data_final)
+        df_vendas = df_vendas_consolidado[
+            (df_vendas_consolidado["Data da venda"] >= self.data_inicial) & 
+            (df_vendas_consolidado["Data da venda"] <= self.data_final)
         ]
         
         datas_para_agrupar = pd.Series(pd.concat([

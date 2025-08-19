@@ -3,6 +3,7 @@ import pandas as pd
 from scripts.processamento_vendas import VendaProcessor
 import os
 from werkzeug.utils import secure_filename
+import zipfile
 import io
 from config import Config
 
@@ -34,11 +35,11 @@ def validar_dados(data_inicial_str, data_final_str):
     if not data_inicial_str or not data_final_str:
         return "Por favor, preencha ambas as datas."
     try:
-        data_inicial = pd.to_datetime(data_inicial_str, format="%d/%m/%Y")
-        data_final = pd.to_datetime(data_final_str, format="%d/%m/%Y")
-        if data_inicial > data_final:
+        data_inicial_obj = pd.to_datetime(data_inicial_str, format="%d/%m/%Y")
+        data_final_obj = pd.to_datetime(data_final_str, format="%d/%m/%Y")
+        if data_inicial_obj > data_final_obj:
             return "A data inicial não pode ser maior que a final."
-        return data_inicial, data_final
+        return data_inicial_obj, data_final_obj
     except ValueError:
         return "Datas inválidas. Use o formato dd/mm/aaaa."
 
@@ -55,33 +56,35 @@ def processar_vendas():
         
         data_inicial, data_final = validacao
         
-        if 'cielo' not in request.files or 'vendas' not in request.files:
+        files_cielo = request.files.getlist('cielo')
+        files_vendas = request.files.getlist('vendas')
+        
+        if not files_cielo or not files_vendas:
             flash('Um ou mais arquivos não foram enviados.', 'error')
             return render_template('vendas.html')
-            
-        file_cielo = request.files['cielo']
-        file_vendas = request.files['vendas']
         
-        if file_cielo.filename == '' or file_vendas.filename == '':
-            flash('Por favor, selecione ambos os arquivos.', 'error')
-            return render_template('vendas.html')
-
-        if not allowed_file(file_cielo.filename) or not allowed_file(file_vendas.filename):
-            flash('Apenas arquivos .xlsx são permitidos.', 'error')
-            return render_template('vendas.html')
-
-        path_cielo = None
-        path_vendas = None
+        paths_cielo = []
+        paths_vendas = []
         try:
-            filename_cielo = secure_filename(file_cielo.filename)
-            path_cielo = os.path.join(app.config['UPLOAD_FOLDER'], filename_cielo)
-            file_cielo.save(path_cielo)
-            
-            filename_vendas = secure_filename(file_vendas.filename)
-            path_vendas = os.path.join(app.config['UPLOAD_FOLDER'], filename_vendas)
-            file_vendas.save(path_vendas)
+            for file in files_cielo:
+                if file.filename == '' or not allowed_file(file.filename):
+                    flash('Apenas arquivos .xlsx são permitidos ou algum arquivo da Cielo não foi selecionado.', 'error')
+                    return render_template('vendas.html')
+                filename = secure_filename(file.filename)
+                path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(path)
+                paths_cielo.append(path)
 
-            processor = VendaProcessor(data_inicial, data_final, path_cielo, path_vendas)
+            for file in files_vendas:
+                if file.filename == '' or not allowed_file(file.filename):
+                    flash('Apenas arquivos .xlsx são permitidos ou algum arquivo de Vendas não foi selecionado.', 'error')
+                    return render_template('vendas.html')
+                filename = secure_filename(file.filename)
+                path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(path)
+                paths_vendas.append(path)
+            
+            processor = VendaProcessor(data_inicial, data_final, paths_cielo, paths_vendas)
             lista_tuplas_dfs, error = processor.processar()
             
             if error:
@@ -90,7 +93,6 @@ def processar_vendas():
                 consolidado = request.form.get('consolidado')
                 
                 if consolidado:
-                    # Adiciona a linha 5112 e salva o arquivo consolidado
                     dfs = [df for data, df in lista_tuplas_dfs]
                     df_final = pd.concat(dfs, ignore_index=True)
                     
@@ -102,14 +104,13 @@ def processar_vendas():
                     
                     try:
                         df_final.to_csv(caminho_salvo, index=False, header=False, sep=";", encoding="ISO-8859-1", errors="replace")
-                        flash(f"Arquivo consolidado gerado com sucesso na pasta 'uploads'.", 'success')
+                        flash(f"Arquivo consolidado gerado com sucesso em: {caminho_salvo}", 'success')
                     except PermissionError:
                         new_path = generate_unique_filename(app.config['UPLOAD_FOLDER'], nome_final)
                         df_final.to_csv(new_path, index=False, header=False, sep=";", encoding="ISO-8859-1", errors="replace")
                         flash(f"O arquivo estava em uso. Uma nova versão foi salva como: {new_path}", 'warning')
 
                 else:
-                    # Salva arquivos diários
                     for data, df_dia in lista_tuplas_dfs:
                         df_first_line = pd.DataFrame([["5112"] + ["" for _ in range(7)]], columns=df_dia.columns)
                         df_dia_completo = pd.concat([df_first_line, df_dia], ignore_index=True)
@@ -132,10 +133,14 @@ def processar_vendas():
             flash(f"Ocorreu um erro no processamento: {e}", 'error')
             
         finally:
-            if path_cielo and os.path.exists(path_cielo):
-                os.remove(path_cielo)
-            if path_vendas and os.path.exists(path_vendas):
-                os.remove(path_vendas)
+            if paths_cielo:
+                for path in paths_cielo:
+                    if os.path.exists(path):
+                        os.remove(path)
+            if paths_vendas:
+                for path in paths_vendas:
+                    if os.path.exists(path):
+                        os.remove(path)
             
     return render_template('vendas.html')
 

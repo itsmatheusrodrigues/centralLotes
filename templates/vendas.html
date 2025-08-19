@@ -6,11 +6,13 @@
     
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-        <ul class="flashes">
+        <div class="message-container">
         {% for category, message in messages %}
-            <li class="{{ category }}">{{ message }}</li>
+            <div class="message {{ category }}">
+                <p>{{ message }}</p>
+            </div>
         {% endfor %}
-        </ul>
+        </div>
     {% endif %}
     {% endwith %}
 
@@ -26,11 +28,11 @@
             </div>
             <div class="form-group">
                 <label for="cielo">Arquivo Cielo.xlsx:</label>
-                <input type="file" id="cielo" name="cielo" required>
+                <input type="file" id="cielo" name="cielo" multiple required>
             </div>
             <div class="form-group">
                 <label for="vendas">Arquivo Vendas.xlsx:</label>
-                <input type="file" id="vendas" name="vendas" required>
+                <input type="file" id="vendas" name="vendas" multiple required>
             </div>
             <div class="form-group">
                 <input type="checkbox" id="consolidado" name="consolidado">
